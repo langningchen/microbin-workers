@@ -1,0 +1,16 @@
+# Copy to `.dev.vars` for local development (never commit the real file).
+# In production use `wrangler secret put <NAME>` instead.
+
+# REQUIRED: random string (>= 32 chars). Seals upload tokens, file tokens and admin sessions.
+#   openssl rand -base64 48
+SESSION_SECRET="change-me-to-a-long-random-string-for-local-dev-only"
+
+# Optional: enables the /admin panel (username comes from the ADMIN_USERNAME var, default "admin").
+# ADMIN_PASSWORD="change-me"
+
+# Optional: HTTP Basic Auth in front of the create / list / edit / remove / admin pages.
+# BASIC_AUTH_USERNAME is a plain var in wrangler.jsonc.
+# BASIC_AUTH_PASSWORD="change-me"
+
+# Optional: with READONLY=true only people who know this password can create uploads.
+# UPLOADER_PASSWORD="change-me"

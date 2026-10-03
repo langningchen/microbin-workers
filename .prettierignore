@@ -1,0 +1,7 @@
+node_modules
+.wrangler
+public/static
+src/generated
+worker-configuration.d.ts
+package-lock.json
+coverage

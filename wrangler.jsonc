@@ -1,0 +1,134 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "microbin",
+  "main": "src/index.ts",
+  // Keep this current: https://developers.cloudflare.com/workers/configuration/compatibility-dates/
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  // Logs are structured JSON (see src/middleware/logging.ts). Query strings are redacted because
+  // file links may carry short-lived access tokens.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "redact_query_string": true,
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.01
+    },
+  },
+  // Static assets (CSS/JS/logo). Requests that match a file are served without invoking the Worker.
+  "assets": {
+    "directory": "./public"
+  },
+  // IDs are intentionally omitted: `wrangler deploy` provisions the D1 database and the R2 bucket
+  // on first deploy. Pin `database_id` here if you want to reuse existing resources.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "microbin",
+      "migrations_dir": "migrations"
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "microbin-files"
+    }
+  ],
+  // Serve the app from your own domain (the Worker is the origin, DNS and TLS are automatic):
+  // "routes": [{ "pattern": "bin.example.com", "custom_domain": true }],
+  // Garbage collection: expired / burned / stale pastas and orphaned R2 objects.
+  "triggers": {
+    "crons": [
+      "*/30 * * * *"
+    ]
+  },
+  // Abuse protection (per Cloudflare location, see docs for semantics).
+  "ratelimits": [
+    {
+      "name": "RL_WRITE",
+      "namespace_id": "7101",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    },
+    {
+      "name": "RL_AUTH",
+      "namespace_id": "7102",
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
+    },
+  ],
+  // Secrets are never written in this file. Set them with `pnpm dlx wrangler secret put <NAME>`
+  // (or `deploy --secrets-file`, see README); locally they come from `.dev.vars`:
+  //   SESSION_SECRET       required, >= 32 random characters
+  //   ADMIN_PASSWORD       enables the /admin panel
+  //   BASIC_AUTH_PASSWORD  with BASIC_AUTH_USERNAME below
+  //   UPLOADER_PASSWORD    with READONLY=true
+  // (Not declared via "secrets.required" on purpose: wrangler then only injects the declared
+  // names in local dev, which would silently drop the optional ones.)
+  // Readable stack traces in Workers Logs.
+  "upload_source_maps": true,
+  // Bundle the browser scripts + stylesheet before every dev/deploy build. Watching all of src/
+  // matters: with a custom build wrangler only hot-reloads what is inside watch_dir.
+  "build": {
+    "command": "pnpm run build:client",
+    "watch_dir": [
+      "src"
+    ]
+  },
+  // ── Configuration: the names of upstream MicroBin without the MICROBIN_ prefix (see README) ──
+  "vars": {
+    // Branding / layout
+    "TITLE": "",
+    "FOOTER_TEXT": "",
+    "HIDE_HEADER": false,
+    "HIDE_FOOTER": false,
+    "HIDE_LOGO": false,
+    "WIDE": false,
+    "CUSTOM_CSS": "", // extra stylesheet URL, loaded after the default one
+    // Public URLs (optional). Links are derived from the request when empty.
+    "PUBLIC_URL": "",
+    "SHORT_URL": "", // alternative host for copied short links (/p/<id>, /u/<id>)
+    // Features
+    "NO_LISTING": false,
+    "NO_FILE_UPLOAD": false,
+    "QR": true,
+    "SHOW_READ_STATS": true,
+    "HIGHLIGHT_SYNTAX": true,
+    "EDITABLE": true,
+    "ENABLE_BURN_AFTER": true,
+    "DEFAULT_BURN_AFTER": 0,
+    "HASH_IDS": false, // short random ids instead of animal names
+    "ID_LENGTH": 0, // 0 = automatic: 4 animal words / 8 chars. Unlisted + read-only uploads (link = only protection) always use >= 8 words / 12 chars
+    "DEFAULT_VIEW": "gallery", // gallery | stream | list
+    // Privacy
+    "PRIVATE": true, // offer "unlisted"
+    "ENABLE_READONLY": true,
+    "ENCRYPTION_SERVER_SIDE": true,
+    "ENCRYPTION_CLIENT_SIDE": true,
+    "DEFAULT_PRIVACY": "public",
+    // Expiry
+    "DEFAULT_EXPIRY": "24hour",
+    "MAX_EXPIRY": "1week",
+    "ETERNAL_PASTA": false, // also requires MAX_EXPIRY=never
+    "GC_DAYS": 90, // delete pastas nobody has read for N days (0 = never)
+    // Limits
+    "MAX_TEXT_KB": 1024,
+    "MAX_FILES": 20,
+    "MAX_FILE_SIZE_UNENCRYPTED_MB": 2048,
+    "MAX_FILE_SIZE_ENCRYPTED_MB": 256,
+    "UPLOAD_SINGLE_MAX_MB": 64, // bigger files are uploaded in parts (a request body is capped at 100 MB)
+    "UPLOAD_PART_MB": 32, // multipart part size, 5..90
+    "PBKDF2_ITERATIONS": 100000, // server-side modes; Workers production caps this at 100000
+    // Access control (passwords are secrets, see above)
+    "READONLY": false, // only people with UPLOADER_PASSWORD may create uploads
+    "BASIC_AUTH_USERNAME": "",
+    "ADMIN_USERNAME": "admin",
+  },
+}

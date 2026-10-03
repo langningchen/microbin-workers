@@ -1,0 +1,13 @@
+# Applied by Workers Static Assets to files in this directory (the Worker adds its own headers
+# to dynamic pages, see src/middleware/security.ts).
+
+# Hashed bundles produced by `pnpm run build:client` never change: cache them forever.
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/logo.png
+  Cache-Control: public, max-age=86400
+
+/favicon.ico
+  Cache-Control: public, max-age=86400
