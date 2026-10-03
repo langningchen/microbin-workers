@@ -31,4 +31,4 @@ jobs:
       - run: pnpm run typecheck && pnpm test
       # Schema first, code second: migrations are written to be backwards compatible.
       - run: pnpm run db:migrate:remote
-      - run: pnpm dlx wrangler deploy
+      - run: pnpm exec wrangler deploy

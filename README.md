@@ -100,7 +100,7 @@ Trigger Cron manually: `curl "http://localhost:8787/cdn-cgi/local/scheduled"`
 
 ### Prerequisites
 
-- A Cloudflare account; run `pnpm dlx wrangler login` (or configure `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`).
+- A Cloudflare account; run `pnpm exec wrangler login` (or configure `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`).
 - **A Workers Paid plan is strongly recommended**. The free tier provides only 10 ms CPU time per request: password verification (PBKDF2; ~17 ms for 100k iterations locally), server-side encryption, and ZIP compression can easily exceed this limit. Plain text or unencrypted file sharing without passwords usually works fine on the free plan, but **this cannot be guaranteed across all edge hardware**. Please test on a small scale first. See [FAQ](#frequently-asked-questions).
 
 ### First Deployment
@@ -117,7 +117,7 @@ ADMIN_PASSWORD=$(openssl rand -base64 18)
 EOF
 
 # 2. Deploy (uploads secrets simultaneously; avoids runtime errors from missing SESSION_SECRET)
-pnpm dlx wrangler deploy --secrets-file .secrets.env
+pnpm exec wrangler deploy --secrets-file .secrets.env
 
 # 3. Apply schema migrations to remote D1
 pnpm run db:migrate:remote
@@ -136,8 +136,8 @@ pnpm run deploy
 Prefer manual resource creation? Create them manually and paste the generated IDs into `wrangler.jsonc`:
 
 ```bash
-pnpm dlx wrangler d1 create microbin          # Put the database_id into d1_databases[0].database_id
-pnpm dlx wrangler r2 bucket create microbin-files
+pnpm exec wrangler d1 create microbin          # Put the database_id into d1_databases[0].database_id
+pnpm exec wrangler r2 bucket create microbin-files
 ```
 
 ### Custom Domains
@@ -162,7 +162,7 @@ Uncomment and configure the route in `wrangler.jsonc` (the Worker acts as the or
 Non-sensitive configurations reside under `vars` in `wrangler.jsonc` (booleans, numbers, or strings). Passwords and credentials must be set as Worker secrets.
 Variable names follow upstream conventions with the `MICROBIN_` prefix removed. **If any configuration value is invalid, the application refuses to start and lists all configuration errors at once in the logs** (rather than silently falling back to defaults).
 
-### Secrets (`pnpm dlx wrangler secret put <NAME>`)
+### Secrets (`pnpm exec wrangler secret put <NAME>`)
 
 | Name | Required | Description |
 | --- | --- | --- |
@@ -358,10 +358,10 @@ When Basic Auth is active, all requests under `/api/*` (except `GET` endpoints) 
 
 ## Operations & Maintenance
 
-- **Logs**: Every request produces a single JSON line containing HTTP method, path, status, duration, `cf-ray`, and country. Query strings are stripped to avoid leaking short-lived download tokens (`observability.redact_query_string` is enabled). Monitor real-time logs via `pnpm dlx wrangler tail` or inspect them in Cloudflare Workers Observability.
+- **Logs**: Every request produces a single JSON line containing HTTP method, path, status, duration, `cf-ray`, and country. Query strings are stripped to avoid leaking short-lived download tokens (`observability.redact_query_string` is enabled). Monitor real-time logs via `pnpm exec wrangler tail` or inspect them in Cloudflare Workers Observability.
 - **Garbage Collection**: Cron executes `src/services/gc.ts` every 30 minutes: purging expired/burned pastes, pastes unread for `GC_DAYS`, pending uploads abandoned for > 24 hours, and R2 keys recorded in the GC outbox. Each run operates under a bounded batch size (D1 limits free tiers to 50 queries per call); remaining tasks rollover to the next run. An on-demand "Run cleanup now" button is available in the admin panel.
-- **Backups**: D1 supports automatic Time Travel (30 days on Paid / 7 days on Free): `pnpm dlx wrangler d1 time-travel info microbin`. Export SQL dumps via: `pnpm dlx wrangler d1 export microbin --remote --output backup.sql`. Uploaded files reside directly in R2.
-- **Credential Rotation**: Update passwords with `pnpm dlx wrangler secret put ADMIN_PASSWORD` (takes effect immediately). Rotating `SESSION_SECRET` invalidates pending in-flight uploads and admin sessions; existing active pastes are unaffected.
+- **Backups**: D1 supports automatic Time Travel (30 days on Paid / 7 days on Free): `pnpm exec wrangler d1 time-travel info microbin`. Export SQL dumps via: `pnpm exec wrangler d1 export microbin --remote --output backup.sql`. Uploaded files reside directly in R2.
+- **Credential Rotation**: Update passwords with `pnpm exec wrangler secret put ADMIN_PASSWORD` (takes effect immediately). Rotating `SESSION_SECRET` invalidates pending in-flight uploads and admin sessions; existing active pastes are unaffected.
 - **Database Limits (D1)**: 2 MB maximum row size, 100 bound parameters per query, 500 MB database size on the free tier. `MAX_TEXT_KB` is capped at 1400 KiB (because ciphertext in `secret`/`private` pastes expands by ~1.4x).
 - **Cost**: Static asset requests are free; R2 has zero egress fees; primary costs are Workers request volume, D1 read/write units, and R2 storage usage. Refer to Cloudflare's pricing structure for details.
 
@@ -373,7 +373,7 @@ When Basic Auth is active, all requests under `/api/*` (except `GET` endpoints) 
 pnpm run dev            # Start local development server (with hot reload)
 pnpm run check          # Run typecheck + lint + format:check + test
 pnpm test               # Run 142 integration tests in workerd (@cloudflare/vitest-plugin)
-pnpm run e2e            # Run 14 Chromium E2E tests (run pnpm dlx playwright install chromium first)
+pnpm run e2e            # Run 14 Chromium E2E tests (run pnpm exec playwright install chromium first)
 pnpm run format         # Format codebase with Prettier
 pnpm run types          # Regenerate worker-configuration.d.ts after editing wrangler.jsonc
 ```

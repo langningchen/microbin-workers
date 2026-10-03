@@ -34,7 +34,7 @@ jobs:
         with:
           cache: true
       - run: pnpm ci
-      - run: pnpm dlx playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run e2e
         env:
           CI: 'true'

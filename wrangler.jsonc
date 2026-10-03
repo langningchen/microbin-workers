@@ -64,7 +64,7 @@
       }
     },
   ],
-  // Secrets are never written in this file. Set them with `pnpm dlx wrangler secret put <NAME>`
+  // Secrets are never written in this file. Set them with `pnpm exec wrangler secret put <NAME>`
   // (or `deploy --secrets-file`, see README); locally they come from `.dev.vars`:
   //   SESSION_SECRET       required, >= 32 random characters
   //   ADMIN_PASSWORD       enables the /admin panel

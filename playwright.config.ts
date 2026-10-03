@@ -19,8 +19,8 @@ export default defineConfig({
   // A real `wrangler dev` (workerd, local D1 + R2) with its own throw-away state.
   webServer: {
     command:
-      `pnpm dlx wrangler d1 migrations apply DB --local --persist-to ${STATE} && ` +
-      `pnpm dlx wrangler dev --port ${PORT} --persist-to ${STATE} ` +
+      `pnpm exec wrangler d1 migrations apply DB --local --persist-to ${STATE} && ` +
+      `pnpm exec wrangler dev --port ${PORT} --persist-to ${STATE} ` +
       `--var SESSION_SECRET:e2e-session-secret-0123456789abcdef0123456789 ` +
       `--var ADMIN_PASSWORD:admin-pass ` +
       // small thresholds: a 12 MB file already exercises the multipart code path
