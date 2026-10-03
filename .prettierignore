@@ -3,5 +3,5 @@ node_modules
 public/static
 src/generated
 worker-configuration.d.ts
-package-lock.json
+pnpm-lock.yaml
 coverage

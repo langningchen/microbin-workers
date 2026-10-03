@@ -4,9 +4,7 @@
   "main": "src/index.ts",
   // Keep this current: https://developers.cloudflare.com/workers/configuration/compatibility-dates/
   "compatibility_date": "2026-10-01",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   // Logs are structured JSON (see src/middleware/logging.ts). Query strings are redacted because
   // file links may carry short-lived access tokens.
   "observability": {
@@ -15,12 +13,12 @@
     "redact_query_string": true,
     "traces": {
       "enabled": true,
-      "head_sampling_rate": 0.01
+      "head_sampling_rate": 0.01,
     },
   },
   // Static assets (CSS/JS/logo). Requests that match a file are served without invoking the Worker.
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
   },
   // IDs are intentionally omitted: `wrangler deploy` provisions the D1 database and the R2 bucket
   // on first deploy. Pin `database_id` here if you want to reuse existing resources.
@@ -28,22 +26,20 @@
     {
       "binding": "DB",
       "database_name": "microbin",
-      "migrations_dir": "migrations"
+      "migrations_dir": "migrations",
     },
   ],
   "r2_buckets": [
     {
       "binding": "BUCKET",
-      "bucket_name": "microbin-files"
-    }
+      "bucket_name": "microbin-files",
+    },
   ],
   // Serve the app from your own domain (the Worker is the origin, DNS and TLS are automatic):
   // "routes": [{ "pattern": "bin.example.com", "custom_domain": true }],
   // Garbage collection: expired / burned / stale pastas and orphaned R2 objects.
   "triggers": {
-    "crons": [
-      "*/30 * * * *"
-    ]
+    "crons": ["*/30 * * * *"],
   },
   // Abuse protection (per Cloudflare location, see docs for semantics).
   "ratelimits": [
@@ -52,16 +48,16 @@
       "namespace_id": "7101",
       "simple": {
         "limit": 30,
-        "period": 60
-      }
+        "period": 60,
+      },
     },
     {
       "name": "RL_AUTH",
       "namespace_id": "7102",
       "simple": {
         "limit": 10,
-        "period": 60
-      }
+        "period": 60,
+      },
     },
   ],
   // Secrets are never written in this file. Set them with `pnpm exec wrangler secret put <NAME>`
@@ -78,9 +74,7 @@
   // matters: with a custom build wrangler only hot-reloads what is inside watch_dir.
   "build": {
     "command": "pnpm run build:client",
-    "watch_dir": [
-      "src"
-    ]
+    "watch_dir": ["src"],
   },
   // ── Configuration: the names of upstream MicroBin without the MICROBIN_ prefix (see README) ──
   "vars": {

@@ -34,20 +34,20 @@ It offers the same features and UI style, but runs on Workers + D1 + R2: serverl
 
 ## Features Overview
 
-| Feature | Description |
-| --- | --- |
-| Text / Files / Shortlinks | Text containing only an `http(s)` URL automatically turns into a short link (`/u/<id>` 302 redirect; other protocols like `javascript:` are never redirected). |
-| Multi-file Support | Three views: Gallery, Stream, and List. Inline preview for images, video, and audio; streaming ZIP bundling via `/archive/<id>`. |
-| 5 Privacy Levels | `public` · `unlisted` · `readonly` · `private` (server-side encrypted) · `secret` (browser end-to-end encrypted). |
-| Expiration | 14 intervals ranging from 1 minute to 16 years + `never`, constrained by `MAX_EXPIRY` / `ETERNAL_PASTA`; garbage-collected via Cron. |
-| Burn After Reading | Deletion after the 1st/10th/100th/1,000th/10,000th read. Counting is **atomic**; concurrent reads will never cause over-deliveries. |
-| Syntax Highlighting | Browser-side highlight.js (31 languages + auto-detection), lazy-loaded on demand. |
-| QR Code, Raw, Edit, Delete, List | Consistent with upstream; QR codes are server-rendered inline SVGs. |
-| Admin Dashboard | `/admin`: Login sessions, view all pastes (including unlisted/encrypted), deletion, manual cleanup. |
-| Site-wide Basic Auth | Protects "create / list / edit / delete / admin"; **reading** via a direct link remains public (consistent with upstream). |
-| Upload Password (`READONLY`) | Only users who provide `UPLOADER_PASSWORD` can create uploads. |
-| curl Compatibility | `POST /upload` accepts the same form fields as upstream; legacy scripts require no modifications. |
-| **New Features** | Multipart chunked uploads (bypassing the 100 MB body size limit), Range/conditional requests, rate limiting, CSP & sandboxed file downloads, JSON API, structured logging. |
+| Feature                          | Description                                                                                                                                                                |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Text / Files / Shortlinks        | Text containing only an `http(s)` URL automatically turns into a short link (`/u/<id>` 302 redirect; other protocols like `javascript:` are never redirected).             |
+| Multi-file Support               | Three views: Gallery, Stream, and List. Inline preview for images, video, and audio; streaming ZIP bundling via `/archive/<id>`.                                           |
+| 5 Privacy Levels                 | `public` · `unlisted` · `readonly` · `private` (server-side encrypted) · `secret` (browser end-to-end encrypted).                                                          |
+| Expiration                       | 14 intervals ranging from 1 minute to 16 years + `never`, constrained by `MAX_EXPIRY` / `ETERNAL_PASTA`; garbage-collected via Cron.                                       |
+| Burn After Reading               | Deletion after the 1st/10th/100th/1,000th/10,000th read. Counting is **atomic**; concurrent reads will never cause over-deliveries.                                        |
+| Syntax Highlighting              | Browser-side highlight.js (31 languages + auto-detection), lazy-loaded on demand.                                                                                          |
+| QR Code, Raw, Edit, Delete, List | Consistent with upstream; QR codes are server-rendered inline SVGs.                                                                                                        |
+| Admin Dashboard                  | `/admin`: Login sessions, view all pastes (including unlisted/encrypted), deletion, manual cleanup.                                                                        |
+| Site-wide Basic Auth             | Protects "create / list / edit / delete / admin"; **reading** via a direct link remains public (consistent with upstream).                                                 |
+| Upload Password (`READONLY`)     | Only users who provide `UPLOADER_PASSWORD` can create uploads.                                                                                                             |
+| curl Compatibility               | `POST /upload` accepts the same form fields as upstream; legacy scripts require no modifications.                                                                          |
+| **New Features**                 | Multipart chunked uploads (bypassing the 100 MB body size limit), Range/conditional requests, rate limiting, CSP & sandboxed file downloads, JSON API, structured logging. |
 
 ---
 
@@ -164,52 +164,52 @@ Variable names follow upstream conventions with the `MICROBIN_` prefix removed. 
 
 ### Secrets (`pnpm exec wrangler secret put <NAME>`)
 
-| Name | Required | Description |
-| --- | --- | --- |
-| `SESSION_SECRET` | ✅ | A random string of ≥ 32 characters, used to seal upload tokens, file download tokens, and admin session cookies. Rotating this invalidates all ongoing uploads and active admin sessions. |
-| `ADMIN_PASSWORD` | | Enables `/admin` when configured (username defined by `ADMIN_USERNAME`). **There are no default credentials**; if unset, `/admin` returns a 404. |
-| `BASIC_AUTH_PASSWORD` | | Must be set alongside `BASIC_AUTH_USERNAME` to enable Basic Auth. Setting only one throws a configuration validation error (fails fast instead of silently disabling auth). |
-| `UPLOADER_PASSWORD` | | Password required to create uploads when `READONLY=true`. If unset, **uploads are completely disabled**. |
+| Name                  | Required | Description                                                                                                                                                                               |
+| --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SESSION_SECRET`      | ✅       | A random string of ≥ 32 characters, used to seal upload tokens, file download tokens, and admin session cookies. Rotating this invalidates all ongoing uploads and active admin sessions. |
+| `ADMIN_PASSWORD`      |          | Enables `/admin` when configured (username defined by `ADMIN_USERNAME`). **There are no default credentials**; if unset, `/admin` returns a 404.                                          |
+| `BASIC_AUTH_PASSWORD` |          | Must be set alongside `BASIC_AUTH_USERNAME` to enable Basic Auth. Setting only one throws a configuration validation error (fails fast instead of silently disabling auth).               |
+| `UPLOADER_PASSWORD`   |          | Password required to create uploads when `READONLY=true`. If unset, **uploads are completely disabled**.                                                                                  |
 
 ### Vars
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `TITLE` | `""` | Site title. |
-| `FOOTER_TEXT` | `""` | Custom footer text; may contain HTML (rendered unescaped; administrator responsibility). |
-| `HIDE_HEADER` `HIDE_FOOTER` `HIDE_LOGO` | `false` | Hide corresponding UI elements. |
-| `WIDE` | `false` | Wide layout (1080px). |
-| `CUSTOM_CSS` | `""` | Additional stylesheet (URL or `/path`), loaded **after** the default styles. External origins are automatically allowed in CSP. |
-| `PUBLIC_URL` | `""` | Public base URL (used for QR code generation). Derived from request headers if blank. Upstream alias `PUBLIC_PATH` is also supported. |
-| `SHORT_URL` | `""` | Short domain used when copying links and generating QR codes. Upstream alias `SHORT_PATH` is also supported. |
-| `NO_LISTING` | `false` | Disables `/list`. |
-| `NO_FILE_UPLOAD` | `false` | Disallows file uploads. |
-| `QR` | `true` | Enables QR code pages. |
-| `SHOW_READ_STATS` | `true` | Displays read counts and expiration times. |
-| `HIGHLIGHT_SYNTAX` | `true` | Enables syntax highlighting menu (upstream alias `HIGHLIGHTSYNTAX` is also supported). |
-| `EDITABLE` | `true` | Whether new uploads can be edited/deleted (stored at creation; not affected by subsequent config changes). |
-| `ENABLE_BURN_AFTER` / `DEFAULT_BURN_AFTER` | `true` / `0` | Burn-after-reading; default options: 0/1/10/100/1000/10000. |
-| `HASH_IDS` | `false` | Use short random strings (base58) instead of animal name IDs. |
-| `ID_LENGTH` | `0` | `0` = auto: 4 words for animal names, 8 chars for hash IDs. **`unlisted` and `readonly` (where the URL is the sole secret) enforce at least 8 words (48 bits of entropy) or 12 characters**. |
-| `DEFAULT_VIEW` | `gallery` | Default file list view: `gallery` / `stream` / `list`. |
-| `PRIVATE` | `true` | Enables the `unlisted` privacy level. |
-| `ENABLE_READONLY` | `true` | Enables the `readonly` privacy level. |
-| `ENCRYPTION_SERVER_SIDE` | `true` | Enables the `private` privacy level. |
-| `ENCRYPTION_CLIENT_SIDE` | `true` | Enables the `secret` privacy level. |
-| `DEFAULT_PRIVACY` | `public` | Default privacy level in upload forms (falls back to `public` if the chosen level is disabled). |
-| `DEFAULT_EXPIRY` / `MAX_EXPIRY` | `24hour` / `1week` | Choices: `1min 10min 1hour 24hour 3days 1week 1month 6months 1year 2years 4years 8years 16years never`. |
-| `ETERNAL_PASTA` | `false` | Allows the `never` expiration option (also requires `MAX_EXPIRY=never`). |
-| `GC_DAYS` | `90` | Pastes not read within N days are purged (0 = disabled). |
-| `MAX_TEXT_KB` | `1024` | Maximum text size in KiB (1–1400; D1 limits individual rows to 2 MB). |
-| `MAX_FILES` | `20` | Maximum number of files per paste (1–100). |
-| `MAX_FILE_SIZE_UNENCRYPTED_MB` | `2048` | Maximum file size for unencrypted files. |
-| `MAX_FILE_SIZE_ENCRYPTED_MB` | `256` | Maximum file size for encrypted files (`private` is further constrained by `UPLOAD_SINGLE_MAX_MB`). |
-| `UPLOAD_SINGLE_MAX_MB` | `64` | Threshold under which files are uploaded in a single request; larger files use chunked multipart uploads (1–90; body limit is 100 MB). |
-| `UPLOAD_PART_MB` | `32` | Multipart upload part size (5–90; R2 requires parts to be ≥ 5 MiB except the last part). |
-| `PBKDF2_ITERATIONS` | `100000` | Number of PBKDF2 iterations for server-side key derivation, clamped between 10,000 and 100,000 (**Cloudflare Workers production rejects values > 100,000**). Lower this value if CPU time limits are exceeded on the free plan. |
-| `READONLY` | `false` | Read-only instance: requires `UPLOADER_PASSWORD` to create pastes. |
-| `BASIC_AUTH_USERNAME` | `""` | Username for site-wide Basic Authentication. |
-| `ADMIN_USERNAME` | `admin` | Username for the admin dashboard. |
+| Variable                                   | Default            | Description                                                                                                                                                                                                                     |
+| ------------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TITLE`                                    | `""`               | Site title.                                                                                                                                                                                                                     |
+| `FOOTER_TEXT`                              | `""`               | Custom footer text; may contain HTML (rendered unescaped; administrator responsibility).                                                                                                                                        |
+| `HIDE_HEADER` `HIDE_FOOTER` `HIDE_LOGO`    | `false`            | Hide corresponding UI elements.                                                                                                                                                                                                 |
+| `WIDE`                                     | `false`            | Wide layout (1080px).                                                                                                                                                                                                           |
+| `CUSTOM_CSS`                               | `""`               | Additional stylesheet (URL or `/path`), loaded **after** the default styles. External origins are automatically allowed in CSP.                                                                                                 |
+| `PUBLIC_URL`                               | `""`               | Public base URL (used for QR code generation). Derived from request headers if blank. Upstream alias `PUBLIC_PATH` is also supported.                                                                                           |
+| `SHORT_URL`                                | `""`               | Short domain used when copying links and generating QR codes. Upstream alias `SHORT_PATH` is also supported.                                                                                                                    |
+| `NO_LISTING`                               | `false`            | Disables `/list`.                                                                                                                                                                                                               |
+| `NO_FILE_UPLOAD`                           | `false`            | Disallows file uploads.                                                                                                                                                                                                         |
+| `QR`                                       | `true`             | Enables QR code pages.                                                                                                                                                                                                          |
+| `SHOW_READ_STATS`                          | `true`             | Displays read counts and expiration times.                                                                                                                                                                                      |
+| `HIGHLIGHT_SYNTAX`                         | `true`             | Enables syntax highlighting menu (upstream alias `HIGHLIGHTSYNTAX` is also supported).                                                                                                                                          |
+| `EDITABLE`                                 | `true`             | Whether new uploads can be edited/deleted (stored at creation; not affected by subsequent config changes).                                                                                                                      |
+| `ENABLE_BURN_AFTER` / `DEFAULT_BURN_AFTER` | `true` / `0`       | Burn-after-reading; default options: 0/1/10/100/1000/10000.                                                                                                                                                                     |
+| `HASH_IDS`                                 | `false`            | Use short random strings (base58) instead of animal name IDs.                                                                                                                                                                   |
+| `ID_LENGTH`                                | `0`                | `0` = auto: 4 words for animal names, 8 chars for hash IDs. **`unlisted` and `readonly` (where the URL is the sole secret) enforce at least 8 words (48 bits of entropy) or 12 characters**.                                    |
+| `DEFAULT_VIEW`                             | `gallery`          | Default file list view: `gallery` / `stream` / `list`.                                                                                                                                                                          |
+| `PRIVATE`                                  | `true`             | Enables the `unlisted` privacy level.                                                                                                                                                                                           |
+| `ENABLE_READONLY`                          | `true`             | Enables the `readonly` privacy level.                                                                                                                                                                                           |
+| `ENCRYPTION_SERVER_SIDE`                   | `true`             | Enables the `private` privacy level.                                                                                                                                                                                            |
+| `ENCRYPTION_CLIENT_SIDE`                   | `true`             | Enables the `secret` privacy level.                                                                                                                                                                                             |
+| `DEFAULT_PRIVACY`                          | `public`           | Default privacy level in upload forms (falls back to `public` if the chosen level is disabled).                                                                                                                                 |
+| `DEFAULT_EXPIRY` / `MAX_EXPIRY`            | `24hour` / `1week` | Choices: `1min 10min 1hour 24hour 3days 1week 1month 6months 1year 2years 4years 8years 16years never`.                                                                                                                         |
+| `ETERNAL_PASTA`                            | `false`            | Allows the `never` expiration option (also requires `MAX_EXPIRY=never`).                                                                                                                                                        |
+| `GC_DAYS`                                  | `90`               | Pastes not read within N days are purged (0 = disabled).                                                                                                                                                                        |
+| `MAX_TEXT_KB`                              | `1024`             | Maximum text size in KiB (1–1400; D1 limits individual rows to 2 MB).                                                                                                                                                           |
+| `MAX_FILES`                                | `20`               | Maximum number of files per paste (1–100).                                                                                                                                                                                      |
+| `MAX_FILE_SIZE_UNENCRYPTED_MB`             | `2048`             | Maximum file size for unencrypted files.                                                                                                                                                                                        |
+| `MAX_FILE_SIZE_ENCRYPTED_MB`               | `256`              | Maximum file size for encrypted files (`private` is further constrained by `UPLOAD_SINGLE_MAX_MB`).                                                                                                                             |
+| `UPLOAD_SINGLE_MAX_MB`                     | `64`               | Threshold under which files are uploaded in a single request; larger files use chunked multipart uploads (1–90; body limit is 100 MB).                                                                                          |
+| `UPLOAD_PART_MB`                           | `32`               | Multipart upload part size (5–90; R2 requires parts to be ≥ 5 MiB except the last part).                                                                                                                                        |
+| `PBKDF2_ITERATIONS`                        | `100000`           | Number of PBKDF2 iterations for server-side key derivation, clamped between 10,000 and 100,000 (**Cloudflare Workers production rejects values > 100,000**). Lower this value if CPU time limits are exceeded on the free plan. |
+| `READONLY`                                 | `false`            | Read-only instance: requires `UPLOADER_PASSWORD` to create pastes.                                                                                                                                                              |
+| `BASIC_AUTH_USERNAME`                      | `""`               | Username for site-wide Basic Authentication.                                                                                                                                                                                    |
+| `ADMIN_USERNAME`                           | `admin`            | Username for the admin dashboard.                                                                                                                                                                                               |
 
 The admin panel footer displays the active runtime configuration and highlights configuration warnings (e.g., auto-clamped parameters).
 
@@ -217,13 +217,13 @@ The admin panel footer displays the active runtime configuration and highlights 
 
 ## Privacy Levels & Cryptographic Design
 
-| Level | Listed in `/list` | Who Can Read | Who Can Edit / Delete | Encryption | Server Visibility |
-| --- | --- | --- | --- | --- | --- |
-| `public` | Yes | Anyone | Anyone (if `EDITABLE=true`) | None | Plaintext |
-| `unlisted` | No | Anyone with the link | Anyone (if `EDITABLE=true`) | None | Plaintext |
-| `readonly` | No | Anyone with the link | Password required | None | Plaintext; password transient during request |
-| `private` | No | Password required | Password required | **Server-side** AES-256-GCM | Password/plaintext visible transiently during request; **only ciphertext is persisted** |
-| `secret` | No | Password required | Password required | **Browser-side** AES-256-GCM (text, files, and **filenames** encrypted) | Ciphertext, salt, and verification hash only; **server never sees the password or plaintext** |
+| Level      | Listed in `/list` | Who Can Read         | Who Can Edit / Delete       | Encryption                                                              | Server Visibility                                                                             |
+| ---------- | ----------------- | -------------------- | --------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `public`   | Yes               | Anyone               | Anyone (if `EDITABLE=true`) | None                                                                    | Plaintext                                                                                     |
+| `unlisted` | No                | Anyone with the link | Anyone (if `EDITABLE=true`) | None                                                                    | Plaintext                                                                                     |
+| `readonly` | No                | Anyone with the link | Password required           | None                                                                    | Plaintext; password transient during request                                                  |
+| `private`  | No                | Password required    | Password required           | **Server-side** AES-256-GCM                                             | Password/plaintext visible transiently during request; **only ciphertext is persisted**       |
+| `secret`   | No                | Password required    | Password required           | **Browser-side** AES-256-GCM (text, files, and **filenames** encrypted) | Ciphertext, salt, and verification hash only; **server never sees the password or plaintext** |
 
 > Note: `unlisted` does not mean cryptographically secret: anyone with the URL can view it. This is why its ID default entropy is enforced at 48 bits. Use `private` or `secret` if confidential data is shared.
 
@@ -270,19 +270,19 @@ POST /api/pastas/:id/complete     Publish the paste (expiration timer starts her
 
 Fixes for upstream vulnerabilities alongside additional security hardening:
 
-| Upstream Vulnerability / Design | This Implementation |
-| --- | --- |
-| Random IDs were 16-bit; `unlisted` pastes could be easily enumerated | Cryptographically secure PRNG; public pastes use 4 words (24-bit), **`unlisted`/`readonly` default to 48-bit minimum** (configurable); automatic retry on insertion collisions. |
-| AES-CTR with fixed counters, no integrity auth, `#`-padded keys; magic-crypt with no salt or key stretching | AES-GCM + random IV/nonce + PBKDF2 + HKDF, with authenticated data and truncation protection. |
-| `GET /remove/<id>` deleted pastes immediately (vulnerable to CSRF and crawler pre-fetching) | `GET` shows a confirmation page; actual deletion requires `POST` protected by cross-site origin checks. |
-| Default administrative credentials `admin / m1cr0b1n` | No hardcoded credentials; admin dashboard returns 404 unless `ADMIN_PASSWORD` is explicitly set. |
-| Admin credentials sent on every request | Sealed session cookies on login (`HttpOnly; SameSite=Strict`, `Secure` over HTTPS, 2-hour lifetime). |
-| Variable-time string comparisons for passwords | Constant-time comparisons everywhere. |
-| Link-unfurling crawlers accidentally consumed burn-after-reading pastes | `GET` requests never burn a paste; an intermediate confirmation screen requires explicit user interaction before counting a view. |
-| Burn-after-reading files were immediately unreachable (404) after viewing the page | Files remain downloadable for up to 1 hour using sealed, signed page tokens after the final view; access without a valid token is rejected. |
-| askama template engine with unescaped HTML injection risks | JSX automatic escaping; strict Content Security Policy (no inline scripts or inline styles). |
-| Entire database loaded into an in-memory `Mutex<Vec>` | Powered by Cloudflare D1 with fully parameterized SQL queries; views increment atomically via `UPDATE … RETURNING`. |
-| Uploaded HTML/SVG files rendered inline on the same origin (stored XSS) | Only safe images, audio, video, and plain text can render inline. File downloads enforce `Content-Security-Policy: sandbox` and `X-Content-Type-Options: nosniff`; all other file types are forced to download via `attachment`. |
+| Upstream Vulnerability / Design                                                                             | This Implementation                                                                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Random IDs were 16-bit; `unlisted` pastes could be easily enumerated                                        | Cryptographically secure PRNG; public pastes use 4 words (24-bit), **`unlisted`/`readonly` default to 48-bit minimum** (configurable); automatic retry on insertion collisions.                                                  |
+| AES-CTR with fixed counters, no integrity auth, `#`-padded keys; magic-crypt with no salt or key stretching | AES-GCM + random IV/nonce + PBKDF2 + HKDF, with authenticated data and truncation protection.                                                                                                                                    |
+| `GET /remove/<id>` deleted pastes immediately (vulnerable to CSRF and crawler pre-fetching)                 | `GET` shows a confirmation page; actual deletion requires `POST` protected by cross-site origin checks.                                                                                                                          |
+| Default administrative credentials `admin / m1cr0b1n`                                                       | No hardcoded credentials; admin dashboard returns 404 unless `ADMIN_PASSWORD` is explicitly set.                                                                                                                                 |
+| Admin credentials sent on every request                                                                     | Sealed session cookies on login (`HttpOnly; SameSite=Strict`, `Secure` over HTTPS, 2-hour lifetime).                                                                                                                             |
+| Variable-time string comparisons for passwords                                                              | Constant-time comparisons everywhere.                                                                                                                                                                                            |
+| Link-unfurling crawlers accidentally consumed burn-after-reading pastes                                     | `GET` requests never burn a paste; an intermediate confirmation screen requires explicit user interaction before counting a view.                                                                                                |
+| Burn-after-reading files were immediately unreachable (404) after viewing the page                          | Files remain downloadable for up to 1 hour using sealed, signed page tokens after the final view; access without a valid token is rejected.                                                                                      |
+| askama template engine with unescaped HTML injection risks                                                  | JSX automatic escaping; strict Content Security Policy (no inline scripts or inline styles).                                                                                                                                     |
+| Entire database loaded into an in-memory `Mutex<Vec>`                                                       | Powered by Cloudflare D1 with fully parameterized SQL queries; views increment atomically via `UPDATE … RETURNING`.                                                                                                              |
+| Uploaded HTML/SVG files rendered inline on the same origin (stored XSS)                                     | Only safe images, audio, video, and plain text can render inline. File downloads enforce `Content-Security-Policy: sandbox` and `X-Content-Type-Options: nosniff`; all other file types are forced to download via `attachment`. |
 
 Additional hardening: `X-Frame-Options`, `Referrer-Policy: no-referrer`, `Permissions-Policy`, `X-Robots-Tag: noindex`, HSTS (over HTTPS).
 Filename sanitization strips directory traversal, control characters, Windows-reserved filenames, and **Unicode bidirectional override characters**.
@@ -338,19 +338,19 @@ curl -s -X PUT $HOST/api/pastas/$ID/files/0 -H "x-upload-token: $TOKEN" --data-b
 curl -s -X POST $HOST/api/pastas/$ID/complete -H "x-upload-token: $TOKEN"
 ```
 
-| Method & Route | Description |
-| --- | --- |
-| `POST /api/pastas` | Create a paste. Body parameters: `content`, `expiration`, `burnAfter`, `syntax`, `privacy`, `password`, `kdf`, `files[{name,size}]`, `uploaderPassword`. Returns `201 {id,url,complete,token?,files:[{idx,mode}]}`. Pastes without attached files are completed immediately (`complete:true`). |
-| `PUT /api/pastas/:id/files/:idx` | Direct single-file upload; requires `X-Upload-Token` and an accurate `Content-Length`. |
-| `POST /api/pastas/:id/files/:idx/multipart` | Initialize a multipart upload → `{uploadId,partSize,parts}`. |
-| `PUT …/multipart/:n` | Upload part `n` (part size must match `partSize` exactly, except for the final part) → `{partNumber,etag}`. |
-| `POST …/multipart/complete` | Complete multipart upload: `{"parts":[{partNumber,etag},…]}`. |
-| `POST /api/pastas/:id/complete` | Publish the paste. |
-| `POST /api/pastas/:id/abort` | Discard an uncompleted upload. |
-| `GET /api/pastas/:id` | Read paste data as JSON (**increments read counter**). `private` requires `X-Password`; `secret` requires `X-Auth-Key` (returns encrypted payloads and temporary file download tokens). |
-| `POST /api/pastas/:id/remove` | Delete a paste (`readonly`/`private` requires `X-Password`; `secret` requires `X-Auth-Key`). |
-| `GET /raw/:id` · `/u/:id` · `/file/:id/:idx` · `/archive/:id` · `/qr/:id` | Raw text view · Shortlink redirect · File access (supports Range requests) · ZIP archive download · Inline SVG QR code. |
-| `GET /healthz` | Health check probe (verifies D1 connectivity). |
+| Method & Route                                                            | Description                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/pastas`                                                        | Create a paste. Body parameters: `content`, `expiration`, `burnAfter`, `syntax`, `privacy`, `password`, `kdf`, `files[{name,size}]`, `uploaderPassword`. Returns `201 {id,url,complete,token?,files:[{idx,mode}]}`. Pastes without attached files are completed immediately (`complete:true`). |
+| `PUT /api/pastas/:id/files/:idx`                                          | Direct single-file upload; requires `X-Upload-Token` and an accurate `Content-Length`.                                                                                                                                                                                                         |
+| `POST /api/pastas/:id/files/:idx/multipart`                               | Initialize a multipart upload → `{uploadId,partSize,parts}`.                                                                                                                                                                                                                                   |
+| `PUT …/multipart/:n`                                                      | Upload part `n` (part size must match `partSize` exactly, except for the final part) → `{partNumber,etag}`.                                                                                                                                                                                    |
+| `POST …/multipart/complete`                                               | Complete multipart upload: `{"parts":[{partNumber,etag},…]}`.                                                                                                                                                                                                                                  |
+| `POST /api/pastas/:id/complete`                                           | Publish the paste.                                                                                                                                                                                                                                                                             |
+| `POST /api/pastas/:id/abort`                                              | Discard an uncompleted upload.                                                                                                                                                                                                                                                                 |
+| `GET /api/pastas/:id`                                                     | Read paste data as JSON (**increments read counter**). `private` requires `X-Password`; `secret` requires `X-Auth-Key` (returns encrypted payloads and temporary file download tokens).                                                                                                        |
+| `POST /api/pastas/:id/remove`                                             | Delete a paste (`readonly`/`private` requires `X-Password`; `secret` requires `X-Auth-Key`).                                                                                                                                                                                                   |
+| `GET /raw/:id` · `/u/:id` · `/file/:id/:idx` · `/archive/:id` · `/qr/:id` | Raw text view · Shortlink redirect · File access (supports Range requests) · ZIP archive download · Inline SVG QR code.                                                                                                                                                                        |
+| `GET /healthz`                                                            | Health check probe (verifies D1 connectivity).                                                                                                                                                                                                                                                 |
 
 When Basic Auth is active, all requests under `/api/*` (except `GET` endpoints) require authentication.
 
@@ -409,23 +409,23 @@ test/  e2e/               workerd integration test suites · Playwright browser 
 
 Aligned with Cloudflare's [Workers Best Practices](https://developers.cloudflare.com/workers/best-practices/workers-best-practices/) (September 2026 edition):
 
-| Best Practice | Implementation in This Project |
-| --- | --- |
-| Pin modern `compatibility_date` and enable `nodejs_compat` | Set to `2026-10-01` (latest runtime date) with `nodejs_compat` enabled. |
-| Use `wrangler types` to generate `Env` types | `pnpm run types` (runs automatically in `prepare`). Bindings and vars are derived strictly from generated definitions; secrets are typed in `src/types.ts`. |
-| Keep secrets in `wrangler secret`, out of source code | All credentials are set as secrets (`.dev.vars.example` documents keys); initial deployment uses `--secrets-file`. Missing `SESSION_SECRET` aborts with an actionable error. |
-| Use Workers bindings instead of external REST APIs | D1, R2, and Rate Limiting use native bindings. |
-| Stream request and response bodies; enforce size limits | File uploads, downloads, cryptographic transforms, and ZIP packaging are 100% streamed. JSON and form-data parsing enforce maximum size limits on streaming bodies. |
-| Handle post-response execution with `ctx.waitUntil` | Post-deletion R2 object purging is scheduled via `ctx.waitUntil` without destructuring context. |
-| Avoid storing request state in global scope | State is held strictly within the Hono request context. The only module-level cache is an `env`-derived configuration mapped via a `WeakMap`. |
-| Eliminate unhandled floating promises | ESLint rules `@typescript-eslint/no-floating-promises` and `no-misused-promises` are set to `error`. |
-| Use Web Crypto for randomness; `timingSafeEqual` for secrets | All random numbers use `crypto.getRandomValues`. Hashes are pre-computed to equal lengths before constant-time comparison. |
-| Avoid `passThroughOnException` | Handled via an explicit `onError` handler returning structured error responses without leaking internal stack traces. |
-| Use Workers Static Assets for static resources | Configured via `assets.directory` with hashed filenames and `immutable` caching headers (`_headers`). Static hits never invoke the Worker. |
-| Enable Workers Logs / Traces with structured JSON | `observability` enabled, `redact_query_string` enabled, output structured via `console.log(JSON.stringify(…))`. |
-| Test inside workerd via `@cloudflare/vitest-plugin` | 142 integration tests executed directly within the Workers runtime, including regression tests for local vs. production differences (e.g., PBKDF2 iteration limits). |
-| Automatic resource provisioning | D1 and R2 IDs are omitted in configuration, allowing automatic provisioning on initial `wrangler deploy`. |
-| Custom domains configuration | Production-ready custom domain routes demonstrated in `wrangler.jsonc`. |
+| Best Practice                                                | Implementation in This Project                                                                                                                                               |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pin modern `compatibility_date` and enable `nodejs_compat`   | Set to `2026-10-01` (latest runtime date) with `nodejs_compat` enabled.                                                                                                      |
+| Use `wrangler types` to generate `Env` types                 | `pnpm run types` (runs automatically in `prepare`). Bindings and vars are derived strictly from generated definitions; secrets are typed in `src/types.ts`.                  |
+| Keep secrets in `wrangler secret`, out of source code        | All credentials are set as secrets (`.dev.vars.example` documents keys); initial deployment uses `--secrets-file`. Missing `SESSION_SECRET` aborts with an actionable error. |
+| Use Workers bindings instead of external REST APIs           | D1, R2, and Rate Limiting use native bindings.                                                                                                                               |
+| Stream request and response bodies; enforce size limits      | File uploads, downloads, cryptographic transforms, and ZIP packaging are 100% streamed. JSON and form-data parsing enforce maximum size limits on streaming bodies.          |
+| Handle post-response execution with `ctx.waitUntil`          | Post-deletion R2 object purging is scheduled via `ctx.waitUntil` without destructuring context.                                                                              |
+| Avoid storing request state in global scope                  | State is held strictly within the Hono request context. The only module-level cache is an `env`-derived configuration mapped via a `WeakMap`.                                |
+| Eliminate unhandled floating promises                        | ESLint rules `@typescript-eslint/no-floating-promises` and `no-misused-promises` are set to `error`.                                                                         |
+| Use Web Crypto for randomness; `timingSafeEqual` for secrets | All random numbers use `crypto.getRandomValues`. Hashes are pre-computed to equal lengths before constant-time comparison.                                                   |
+| Avoid `passThroughOnException`                               | Handled via an explicit `onError` handler returning structured error responses without leaking internal stack traces.                                                        |
+| Use Workers Static Assets for static resources               | Configured via `assets.directory` with hashed filenames and `immutable` caching headers (`_headers`). Static hits never invoke the Worker.                                   |
+| Enable Workers Logs / Traces with structured JSON            | `observability` enabled, `redact_query_string` enabled, output structured via `console.log(JSON.stringify(…))`.                                                              |
+| Test inside workerd via `@cloudflare/vitest-plugin`          | 142 integration tests executed directly within the Workers runtime, including regression tests for local vs. production differences (e.g., PBKDF2 iteration limits).         |
+| Automatic resource provisioning                              | D1 and R2 IDs are omitted in configuration, allowing automatic provisioning on initial `wrangler deploy`.                                                                    |
+| Custom domains configuration                                 | Production-ready custom domain routes demonstrated in `wrangler.jsonc`.                                                                                                      |
 
 ---
 
